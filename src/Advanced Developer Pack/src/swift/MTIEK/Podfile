@@ -1,0 +1,7 @@
+# Uncomment the next line to define a global platform for your project
+platform :osx, '10.12'
+
+target 'Microsoft Threat Information Exchange Kit' do
+  use_frameworks!
+  pod 'Alamofire', '~> 4.4'
+end

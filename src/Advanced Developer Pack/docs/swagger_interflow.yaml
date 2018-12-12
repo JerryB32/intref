@@ -1,0 +1,704 @@
+
+swagger: '2.0'
+
+info:
+  title: Microsoft Interflow API
+  description: Help interconnect the worlds brightest minds to drive towards a more secure tomorrow
+  version: 1.0.0
+  
+host: interflow.azure-api.net
+
+schemes:
+  - https
+
+basePath: /api
+
+produces:
+  - application/json
+  
+paths:
+  /debug/who:
+    get:
+      summary: debug_who
+      description: |
+        The endpoint returns information about the users API key. Useful for testing if the api key is valid.
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/DebugWhoReturnTypes200'
+        401:
+          description: Access Denied
+          schema:
+            $ref: '#/definitions/DebugWhoReturnTypes401'
+            
+  /downloads/file:
+    get:
+      summary: download_file
+      description: |
+        downloads a file off of interflow given a file name and directory. A blank directory assumes the root directory
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+        - name: fileName
+          in: query
+          required: true
+          type: string
+        - name: directoryPath
+          in: query
+          required: false
+          type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/DownloadFileReturnTypes200'
+        404:
+          description: Not Found
+
+  /downloads/directorylist:
+    get:
+      summary: download_ListDirectories
+      description: |
+        downloads a list of directories inside a specified directory
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+        - name: directoryPath
+          in: query
+          required: false
+          type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/DownloadDirectoryListTypes200'
+        404:
+          description: Not Found
+              
+  /downloads/filelist:
+    get:
+      summary: download_ListFiles
+      description: |
+        downloads a list of files inside a specified directory
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+        - name: directoryPath
+          in: query
+          required: false
+          type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/DownloadFileListTypes200'
+        404:
+          description: Not Found
+          
+  /downloads/mostrecentfile:
+    get:
+      summary: download_mostRecentFile (depricated)
+      description: |
+        downloads the most recent uploaded file in a given directory - depricated
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+        - name: directoryPath
+          in: query
+          required: false
+          type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/DownloadMostRecentFileTypes200'
+        404:
+          description: Not Found
+          
+
+  /file/download:
+    get:
+      summary: File_Download
+      description: |
+        Download a shared interflow file. This is the newer way of sharing files with partners.
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+        - name: fileName
+          in: query
+          required: true
+          type: string
+      responses:
+        200:
+          description: File Downloaded
+          schema:
+            $ref: "#/definitions/FileDownloadTypes200"
+        403:
+          description: "Forbidden: user does not have the required permissions"
+        404:
+          description: File not found
+        500:
+          description: Internal server error
+
+  /file/listsharedfiles:
+    get:
+      summary: File_ListSharedFiles
+      description: |
+        Lists the files shared to a partner
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/FileListSharedFilesTypes200'
+        404:
+          description: Not Found
+              
+              
+  /file/listuploadedfiles:
+    get:
+      summary: File_ListUploadedFiles
+      description: |
+        Lists the files uploaded by a partner
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/FileListUploadedFilesTypes200'
+        404:
+          description: Not Found
+              
+  /file/upload:
+    post:
+      summary: File_Upload
+      consumes: ["multipart/form-data"]
+      description: |
+        Uploads files to azure storage.
+        The body of the POST should contain **multipart form** data containing the files
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+        - name: file
+          in: formData
+          required: true
+          type: file
+
+      responses:
+        202:
+          description: Files Uploaded
+        204:
+          description: Request does not contain any file(s)
+        409:
+          description: File already exists
+        415:
+          description: Unsupported Media Type
+        500:
+          description: Internal server error
+              
+  /file/delete:
+    post:
+      summary: File_Delete
+      description: |
+        Deletes a generic file uploaded by a partner to interflow.
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+        - name: fileName
+          in: query
+          required: true
+          type: string
+      responses:
+        202:
+          description: Files Deleted
+        400:
+          description: "Bad Request: user does not provide valid values"
+        404:
+          description: File not found for deletion
+        500:
+          description: Internal server error
+              
+  /indicators/uploadfile:
+    post:
+      summary: Indicators_UploadFile (depricated)
+      description: |
+        Upload a JSON file of indicators for processing. The body of the POST call should be the JSON file - depricated (use /indicators/upload)
+      consumes: ["multipart/form-data"]
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+        - name: file
+          in: formData
+          required: true
+          type: file
+      responses:
+        201:
+          description: Indicators uploaded.
+        400:
+          description: No data.
+        500:
+          description: Internal server error
+              
+              
+  /indicators/upload:
+    post:
+      summary: Indicators_Upload
+      description: |
+        Upload one or more indicators in a json array
+      parameters:
+        - name: Ocp-Apim-Subscription-Key
+          in: header
+          required: true
+          type: string
+        - name: Content-Type
+          in: header
+          required: false
+          type: string
+          description: should contain 'application/json' if present
+        - name: JSON-body
+          in: body
+          description: The json containing the OneIndicator definition.
+          schema:
+            $ref: "#/definitions/OneIndicatorArray"
+            
+      responses:
+        201:
+          description: Indicators uploaded.
+        400:
+          description: No data.
+        500:
+          description: Internal server error         
+              
+              
+              
+              
+              
+#begin return type definitions
+definitions:
+  DebugWhoReturnTypes200:
+    title: "Sucessful returned identity object"
+    type: object
+    properties:
+       Identity:
+        type: object
+        properties:
+          Id:
+            type: string
+            description: "A hexidecimal ID string for the subscription"
+          FirstName:
+            type: string
+            description: "First name of the user assigned to the subscription"
+          LastName:
+            type: string
+            description: "Last name of the user assigned to the subscription"
+          Email:
+            type: string
+            description: "Email assigned to the subscription"
+          RegistrationDate:
+            type: string
+            description: "date time string when the subscription was registered"
+          AuthenticationType:
+            type: string
+            description: "type of authenticaion the user has"
+          Association:
+            type: string
+            description: "Company association"
+          IsAuthenticated:
+            type: boolean
+            description: "if the user is authenticated"
+          Name:
+            type: string
+            description: "full name of the user"
+            
+            
+  DebugWhoReturnTypes401:
+    title: "Error returned"
+    type: object
+    properties:
+      statusCode:
+        type: number
+        format: int
+        description: "http return code"
+      message:
+        type: string
+        description: "error message"
+        
+        
+  DownloadFileReturnTypes200:
+    title: "File Content"
+    type: string
+    format: binary
+    description: "file content"
+    
+    
+  DownloadDirectoryListTypes200:
+    title: "Array of directory strings"
+    type: array
+    items:
+      type: string
+      description: "name of directory"
+      
+
+  DownloadFileListTypes200:
+    title: "Array of file objects"
+    type: array
+    description: "array of files returned"
+    items:
+      type: object
+      properties:
+        Name:
+          type: string
+          description: "Name of the file"
+        Length:
+          type: number
+          format: int
+          description: "length of the file in bytes"
+        RelativePath:
+          type: string
+          description: "the full path of the file"
+        LastModified:
+          type: string
+          description: "the last time the file was modified. in most cases, this will be null"
+  
+  
+  DownloadMostRecentFileTypes200:
+    title: "File Content"
+    type: string
+    format: binary
+    description: "file content"
+  
+  FileDownloadTypes200:
+    title: "File Content"
+    type: string
+    format: binary
+    description: "file content"
+  
+  FileListSharedFilesTypes200:
+    title: Array of file objects
+    type: array
+    description: The array of files.
+    items:
+      type: object
+      properties:
+        Name:
+          type: string
+          description: "Name of the file"
+        Length:
+          type: number
+          format: int
+          description: "length of the file in bytes"
+        RelativePath:
+          type: string
+          description: "the full path of the file"
+        LastModified:
+          type: string
+          description: "the last time the file was modified. in most cases, this will be null"
+          
+          
+  FileListUploadedFilesTypes200:
+    title: Array of file objects
+    type: array
+    description: The array of files.
+    items:
+      type: object
+      properties:
+        Name:
+          type: string
+          description: "Name of the file"
+        Length:
+          type: number
+          format: int
+          description: "length of the file in bytes"
+        RelativePath:
+          type: string
+          description: "the full path of the file"
+        LastModified:
+          type: string
+          description: "the last time the file was modified. in most cases, this will be null"
+  
+  OneIndicatorArray:
+    type: array
+    items:
+      $ref: "#/definitions/OneIndicator"
+        
+  OneIndicator:
+    type: object
+    properties:
+      IndicatorId:
+        type: string
+      ExternalId:
+        type: string
+      IndicatorProvider:
+        type: string
+      IndicatorThreatType:
+        type: string
+      IndicatorGuid:
+        type: string
+      Description:
+        type: string
+      TTL:
+        format: int32
+        type: integer
+      PassiveOnly:
+        type: boolean
+      TLPLevel:
+        type: string
+      Confidence:
+        format: int32
+        type: integer
+      Severity:
+        format: int32
+        type: integer
+      IngestedDateTime:
+        format: date-time
+        type: string
+      FirstReportedDateTime:
+        format: date-time
+        type: string
+      LastReportedDateTime:
+        format: date-time
+        type: string
+      IsActive:
+        type: boolean
+      ReportReferenceLink:
+        type: array
+        items:
+          type: string
+      AbbreviatedContextReport:
+        type: string
+      Applicability:
+        type: array
+        items:
+          type: string
+      Tags:
+        type: array
+        items:
+          type: string
+      KnownFalsePositives:
+        type: string
+      KillChain:
+        type: array
+        items:
+          type: string
+      DiamondModel:
+        type: string
+      AdditionalInformation:
+        type: string
+      PartnerDescription:
+        type: string
+      InternalDescription:
+        type: string
+      ContextData:
+        type: string
+      AdditionalMetadata:
+        type: string
+      Version:
+        format: double
+        type: number
+        readOnly: true
+      IsProductLicensed:
+        type: boolean
+      IsPartnerShareable:
+        type: boolean
+      OriginalConfidenceScore:
+        format: int32
+        type: integer
+      EmailSenderAddress:
+        type: string
+      EmailSenderName:
+        type: string
+      EmailSourceDomain:
+        type: string
+      EmailSourceIpAddress:
+        type: string
+      EmailSubject:
+        type: string
+      EmailRecipient:
+        type: string
+      EmailLanguage:
+        type: string
+      FileName:
+        type: string
+      FileSize:
+        format: int32
+        type: integer
+      FileFuzzyLocalitySensitiveHashing:
+        type: string
+      FileMD5:
+        type: string
+      FileSha1:
+        type: string
+      FileSha256:
+        type: string
+      FileType:
+        type: string
+      FilePacker:
+        type: string
+      UserAgent:
+        type: string
+      RegistryKey:
+        type: string
+      NetworkSourceAsn:
+        format: int32
+        type: integer
+      NetworkDestinationAsn:
+        format: int32
+        type: integer
+      NetworkSourceCidrBlock:
+        type: string
+      NetworkDestinationCidrBlock:
+        type: string
+      NetworkSourceIPv4:
+        type: string
+      NetworkDestinationIPv4:
+        type: string
+      NetworkSourceIPv6:
+        type: string
+      NetworkDestinationIPv6:
+        type: string
+      NetworkSourcePort:
+        format: int32
+        type: integer
+      NetworkDestinationPort:
+        format: int32
+        type: integer
+      NetworkProtocol:
+        format: int32
+        type: integer
+      Url:
+        type: string
+      DNSDomainName:
+        type: string
+      DNSDomainNameTimeOfLookup:
+        format: date-time
+        type: string
+      DNSRegistrantName:
+        type: string
+      DNSRegistrantEmail:
+        type: string
+      Password:
+        type: string
+      FileMutexName:
+        type: string
+      NetworkIPv4:
+        type: string
+      NetworkIPv6:
+        type: string
+      RegistryBehavior:
+        type: string
+      NetworkCidrBlock:
+        type: string
+      NetworkPort:
+        format: int32
+        type: integer
+      DetectionSignatures:
+        type: string
+      ActivityGroup:
+        type: array
+        items:
+          type: string
+      Campaign:
+        type: array
+        items:
+          type: string
+      FileFuzzyContextTriggeredPiecewiseHashing:
+        type: string
+      RegistryValue:
+        type: string
+      HostName:
+        type: string
+      FilePath:
+        type: string
+      NameServer:
+        type: string
+      IndicatorExpirationDateTime:
+        format: date-time
+        type: string
+      Attributable:
+        type: boolean
+      Username:
+        type: string
+      EmailEncoding:
+        type: string
+      EmailXMailer:
+        type: string
+      FileCompileDateTime:
+        format: date-time
+        type: string
+      FileCreationDateTime:
+        format: date-time
+        type: string
+      FileSha512:
+        type: string
+      HostGuid:
+        type: string
+      IdentityIndividualName:
+        type: string
+      SystemAtomName:
+        type: string
+      SystemCommandLine:
+        type: string
+      SystemServiceName:
+        type: string
+      ThreatDetectionSignatureId:
+        type: string
+      ThreatDetectionSignatureName:
+        type: string
+      ThreatDetectionProduct:
+        type: string
+      ThreatDetectionVendor:
+        type: string
+      ThreatVulnerability:
+        type: string
+      ThreatVulnerabilityCve:
+        type: array
+        items:
+          type: string
+      X509CertificateIssuer:
+        type: string
+      X509CertificateSerial:
+        type: string
+      X509CertificateSubject:
+        type: string
+      X509CertificateSubjectPublicKey:
+        type: string
+      X509CertificateThumbprint:
+        type: string
+      PESha1:
+        type: string
+      PESha256:
+        type: string
+      IndicatorProviderId:
+        type: string
+          
+          
